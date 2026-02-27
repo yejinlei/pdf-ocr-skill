@@ -1,0 +1,13 @@
+# PDF OCR Skill Requirements
+
+# PDF处理
+pymupdf>=1.23.0
+
+# 图片处理
+pillow>=9.0.0
+
+# HTTP请求
+requests>=2.28.0
+
+# 环境变量管理
+python-dotenv>=1.0.0
