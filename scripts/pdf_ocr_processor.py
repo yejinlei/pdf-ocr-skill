@@ -5,17 +5,31 @@ PDF OCR处理脚本
 支持两种OCR引擎：
 1. 硅基流动大模型API（云端）
 2. RapidOCR（本地，无需API）
+支持自动安装缺失的依赖
 """
 
 import os
 import sys
 import base64
 import requests
+import subprocess
 from typing import Dict, Any, List, Optional
 from dotenv import load_dotenv
 
 # 加载环境变量
 load_dotenv()
+
+
+def install_dependency(package):
+    """自动安装缺失的依赖"""
+    print(f"正在安装依赖: {package}")
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        print(f"依赖 {package} 安装成功")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"依赖 {package} 安装失败: {e}")
+        return False
 
 
 class RapidOCREngine:
@@ -31,7 +45,15 @@ class RapidOCREngine:
             from rapidocr_onnxruntime import RapidOCR
             self.ocr = RapidOCR()
         except ImportError:
-            raise Exception("请安装RapidOCR依赖: pip install rapidocr_onnxruntime")
+            print("RapidOCR依赖未安装，正在尝试自动安装...")
+            if install_dependency("rapidocr_onnxruntime"):
+                try:
+                    from rapidocr_onnxruntime import RapidOCR
+                    self.ocr = RapidOCR()
+                except ImportError:
+                    raise Exception("RapidOCR依赖安装失败，请手动安装: pip install rapidocr_onnxruntime")
+            else:
+                raise Exception("RapidOCR依赖安装失败，请手动安装: pip install rapidocr_onnxruntime")
     
     def recognize(self, image_path: str) -> str:
         """识别单张图片"""
@@ -195,7 +217,46 @@ class PDFOCRProcessor:
             return images
             
         except ImportError:
-            raise Exception("请安装依赖: pip install pymupdf pillow")
+            print("PDF处理依赖未安装，正在尝试自动安装...")
+            if install_dependency("pymupdf") and install_dependency("pillow"):
+                try:
+                    import fitz  # PyMuPDF
+                    from PIL import Image
+                    import io
+                    
+                    doc = fitz.open(pdf_path)
+                    images = []
+                    
+                    for page_num in range(len(doc)):
+                        page = doc[page_num]
+                        
+                        # 将PDF页面转换为图片
+                        zoom = 2  # 放大倍数
+                        mat = fitz.Matrix(zoom, zoom)
+                        pix = page.get_pixmap(matrix=mat)
+                        
+                        # 转换为PIL Image
+                        img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+                        
+                        if output_dir:
+                            # 保存到文件
+                            os.makedirs(output_dir, exist_ok=True)
+                            img_path = os.path.join(output_dir, f"page_{page_num + 1}.png")
+                            img.save(img_path, "PNG")
+                            images.append(img_path)
+                        else:
+                            # 转换为base64
+                            buffered = io.BytesIO()
+                            img.save(buffered, format="PNG")
+                            img_base64 = base64.b64encode(buffered.getvalue()).decode()
+                            images.append(img_base64)
+                    
+                    doc.close()
+                    return images
+                except ImportError:
+                    raise Exception("PDF处理依赖安装失败，请手动安装: pip install pymupdf pillow")
+            else:
+                raise Exception("PDF处理依赖安装失败，请手动安装: pip install pymupdf pillow")
         except Exception as e:
             raise Exception(f"PDF转图片失败: {str(e)}")
     
@@ -289,8 +350,16 @@ class PDFOCRProcessor:
                 result["text"] = self.rapid_engine.recognize(image_path)
             else:
                 # 将图片转换为base64
-                from PIL import Image
-                import io
+                try:
+                    from PIL import Image
+                    import io
+                except ImportError:
+                    print("图片处理依赖未安装，正在尝试自动安装...")
+                    if install_dependency("pillow"):
+                        from PIL import Image
+                        import io
+                    else:
+                        raise Exception("图片处理依赖安装失败，请手动安装: pip install pillow")
                 
                 img = Image.open(image_path)
                 if img.mode != 'RGB':
