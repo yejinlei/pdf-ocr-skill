@@ -12,10 +12,10 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="pdf-ocr-skill",
-    version="1.0.0",
+    version="2.0.0",
     author="PDF OCR Skill Team",
     author_email="",
-    description="PDF OCR Skill - 使用硅基流动大模型进行OCR识别",
+    description="PDF OCR Skill - 支持RapidOCR本地引擎和硅基流动大模型的双引擎OCR识别",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yejinlei/pdf-ocr-skill",
@@ -33,7 +33,7 @@ setup(
     ],
     python_requires=">=3.8",
     install_requires=requirements,
-    keywords="ocr pdf image recognition siliconflow chinese english",
+    keywords="ocr pdf image recognition siliconflow rapidocr local-ocr chinese english",
     project_urls={
         "Bug Reports": "https://github.com/yejinlei/pdf-ocr-skill/issues",
         "Source": "https://github.com/yejinlei/pdf-ocr-skill",
