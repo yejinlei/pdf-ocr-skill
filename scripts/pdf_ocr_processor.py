@@ -392,6 +392,17 @@ def process_pdf_ocr(pdf_path: str, engine: Optional[str] = None) -> Dict[str, An
     return processor.ocr_pdf(pdf_path)
 
 
+def main(input_data: Dict[str, Any] = None) -> Dict[str, Any]:
+    """SKILL 入口点"""
+    if input_data is None:
+        input_data = {}
+    pdf_path = input_data.get('file_path', '')
+    engine = input_data.get('engine', None)
+    if not pdf_path:
+        return {"success": False, "error": "PDF file path is required"}
+    return process_pdf_ocr(pdf_path, engine=engine)
+
+
 if __name__ == "__main__":
     # 测试代码
     if len(sys.argv) > 1:

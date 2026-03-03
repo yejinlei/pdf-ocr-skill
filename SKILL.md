@@ -71,7 +71,7 @@ SILICON_FLOW_OCR_MODEL=deepseek-ai/DeepSeek-OCR
 
 ```python
 # 导入OCR处理器
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例（默认使用RapidOCR）
 processor = PDFOCRProcessor()
@@ -89,7 +89,7 @@ print(result['text'])
 
 ```python
 # 导入OCR处理器
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例，指定使用硅基流动API
 processor = PDFOCRProcessor(engine="siliconflow")
@@ -106,7 +106,7 @@ print(result['text'])
 
 ```python
 # 导入OCR处理器
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例
 processor = PDFOCRProcessor()  # 或 PDFOCRProcessor(engine="siliconflow")

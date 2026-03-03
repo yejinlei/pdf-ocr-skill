@@ -53,7 +53,7 @@ SILICON_FLOW_OCR_MODEL=deepseek-ai/DeepSeek-OCR
 ### 使用默认引擎（RapidOCR本地识别）
 
 ```python
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例（默认使用RapidOCR）
 processor = PDFOCRProcessor()
@@ -70,7 +70,7 @@ print(result['text'])
 ### 使用硅基流动API引擎
 
 ```python
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例，指定使用硅基流动API
 processor = PDFOCRProcessor(engine="siliconflow")
@@ -86,7 +86,7 @@ print(result['text'])
 ### 识别图片文件
 
 ```python
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例
 processor = PDFOCRProcessor()  # 或 PDFOCRProcessor(engine="siliconflow")
@@ -114,7 +114,7 @@ python pdf_ocr_processor.py your_document.pdf siliconflow
 
 ```python
 import os
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例
 processor = PDFOCRProcessor()
@@ -149,7 +149,7 @@ for pdf_file in os.listdir(pdf_dir):
 ### 示例2：混合使用两种引擎
 
 ```python
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 def process_with_best_engine(pdf_path):
     """尝试使用RapidOCR，如果效果不佳则使用硅基流动API"""
@@ -178,7 +178,7 @@ print(result['text'])
 ### 示例3：保存中间图片
 
 ```python
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例
 processor = PDFOCRProcessor()
@@ -197,7 +197,7 @@ print(result['text'])
 
 ```python
 import os
-from pdf_ocr_processor import PDFOCRProcessor
+from scripts.pdf_ocr_processor import PDFOCRProcessor
 
 # 创建处理器实例
 processor = PDFOCRProcessor()
