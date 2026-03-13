@@ -337,6 +337,24 @@ class PDFOCRProcessor:
             "engine": "siliconflow"
         }
     
+    def process(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        处理入口点（供skill-loader调用）
+        
+        Args:
+            input_data: 包含file_path和可选engine的字典
+        
+        Returns:
+            包含success、text、page_count和engine的字典
+        """
+        pdf_path = input_data.get('file_path', '')
+        engine = input_data.get('engine', None)
+        
+        if not pdf_path:
+            return {"success": False, "error": "PDF file path is required"}
+        
+        return process_pdf_ocr(pdf_path, engine=engine)
+    
     def ocr_image_file(self, image_path: str) -> Dict[str, Any]:
         """OCR识别单个图片文件"""
         result = {
@@ -386,10 +404,12 @@ def process_pdf_ocr(pdf_path: str, engine: Optional[str] = None) -> Dict[str, An
         engine: OCR引擎类型，可选 "rapid" 或 "siliconflow"
     
     Returns:
-        包含text、page_count和engine的字典
+        包含success、text、page_count和engine的字典
     """
     processor = PDFOCRProcessor(engine=engine)
-    return processor.ocr_pdf(pdf_path)
+    result = processor.ocr_pdf(pdf_path)
+    result['success'] = True
+    return result
 
 
 def main(input_data: Dict[str, Any] = None) -> Dict[str, Any]:

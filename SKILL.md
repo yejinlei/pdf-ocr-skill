@@ -1,8 +1,8 @@
 ---
-name: pdf-ocr
+name: pdf-ocr-skill
 description: 支持双引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取文字内容
-version: 2.1.0
-author: PDF OCR Skill Team
+version: 2.3.0
+author: yejinlei
 license: MIT
 tags:
   - ocr
