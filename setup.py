@@ -15,7 +15,7 @@ setup(
     version="2.3.0",
     author="PDF OCR Skill Team",
     author_email="",
-    description="PDF OCR Skill - 支持RapidOCR本地引擎和硅基流动大模型的双引擎OCR识别，支持中英文",
+    description="PDF OCR Skill with dual-engine support, capable of extracting Chinese and English text from scanned PDF files and image files",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yejinlei/pdf-ocr-skill",
