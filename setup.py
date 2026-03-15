@@ -12,10 +12,10 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="pdf-ocr-skill",
-    version="2.1.0",
+    version="2.3.0",
     author="PDF OCR Skill Team",
     author_email="",
-    description="PDF OCR Skill - 支持RapidOCR本地引擎和硅基流动大模型的双引擎OCR识别",
+    description="PDF OCR Skill - 支持RapidOCR本地引擎和硅基流动大模型的双引擎OCR识别，支持中英文",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yejinlei/pdf-ocr-skill",
