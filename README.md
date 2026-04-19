@@ -87,6 +87,28 @@ print(f"识别完成，共 {result['page_count']} 页")
 print(result['text'])
 ```
 
+#### 使用RapidDoc增强引擎
+
+```python
+from scripts.pdf_ocr_processor import PDFOCRProcessor
+
+# 创建处理器实例，指定使用RapidDoc增强引擎
+processor = PDFOCRProcessor(engine="rapidoc")
+
+# 执行PDF OCR识别
+result = processor.ocr_pdf('path/to/your/scanned.pdf')
+
+# 获取识别结果
+print(f"识别完成，共 {result['page_count']} 页")
+print(f"使用引擎: {result['engine']}")
+print(f"提取的图片数量: {result['images_count']}")
+print("\n识别结果:")
+print(result['text'])
+if 'markdown' in result:
+    print("\nMarkdown结果:")
+    print(result['markdown'])
+```
+
 #### 识别图片文件
 
 ```python
@@ -377,8 +399,9 @@ A PDF text extraction skill that supports multiple OCR engines, capable of extra
 
 - ✅ Support text extraction from scanned PDF files
 - ✅ Support text recognition from multiple image formats (JPG, PNG, BMP, GIF, TIFF, WEBP)
-- ✅ **Dual-engine support**:
+- ✅ **Triple-engine support**:
   - **RapidOCR** (local engine, default): No API key required, free to use, fast recognition speed
+  - **RapidDoc** (enhanced engine): Supports layout analysis, table recognition, formula recognition, and reading order recovery
   - **SiliconFlow API** (cloud engine): Uses large model for OCR recognition
 - ✅ Support Chinese and English text recognition
 - ✅ Maintain text order and structure
@@ -411,6 +434,7 @@ pip install rapidocr_onnxruntime
 ```env
 # OCR engine selection
 # - "rapid": Use RapidOCR local engine (default, no API key required)
+# - "rapidoc": Use RapidDoc enhanced engine (no API key required)
 # - "siliconflow": Use SiliconFlow API engine (API key required)
 OCR_ENGINE=rapid
 
@@ -477,6 +501,9 @@ python pdf_ocr_processor.py your_document.pdf
 
 # Use SiliconFlow API engine
 python pdf_ocr_processor.py your_document.pdf siliconflow
+
+# Use RapidDoc enhanced engine
+python pdf_ocr_processor.py your_document.pdf rapidoc
 ```
 
 ### Detailed Usage Examples
@@ -604,14 +631,17 @@ for image_file in os.listdir(image_dir):
 
 ### Engine Comparison
 
-| Feature | RapidOCR (Local) | SiliconFlow API (Cloud) |
-|---------|------------------|-------------------------|
-| **API Key Required** | ❌ No | ✅ Yes |
-| **Cost** | Free | Pay per call |
-| **Recognition Speed** | Fast (local execution) | Slower (network request) |
-| **Accuracy** | High | High |
-| **Network Dependency** | No | Yes |
-| **Output Format** | Plain text | May include HTML tags |
+| Feature | RapidOCR (Local) | RapidDoc (Enhanced) | SiliconFlow API (Cloud) |
+|---------|------------------|---------------------|-------------------------|
+| **API Key Required** | ❌ No | ❌ No | ✅ Yes |
+| **Cost** | Free | Free | Pay per call |
+| **Recognition Speed** | Fast (local execution) | Slower (additional analysis) | Slower (network request) |
+| **Accuracy** | High | High | High |
+| **Network Dependency** | No | No | Yes |
+| **Output Format** | Plain text | Plain text + Markdown | May include HTML tags |
+| **Layout Analysis** | ❌ No | ✅ Yes | ❌ No |
+| **Table Recognition** | ❌ No | ✅ Yes | ❌ No |
+| **Formula Recognition** | ❌ No | ✅ Yes | ❌ No |
 
 ### Supported File Formats
 
@@ -624,7 +654,7 @@ for image_file in os.listdir(image_dir):
 {
     "text": "Recognized full text content",
     "page_count": number_of_pages,  # Always 1 for image files
-    "engine": "rapid" | "siliconflow"  # OCR engine used
+    "engine": "rapid" | "rapidoc" | "siliconflow"  # OCR engine used
 }
 ```
 
@@ -649,8 +679,14 @@ for image_file in os.listdir(image_dir):
    - May incur costs
    - Recognition speed depends on number of pages, image size, and network conditions
 
-3. Recognition accuracy may vary for complex scanned PDFs or images
-4. It is recommended to use high-resolution scanned PDFs or images for better recognition results
+3. **RapidDoc Engine**:
+   - Completely free, no network connection required
+   - Supports layout analysis, table recognition, formula recognition, and reading order recovery
+   - Provides more structured output including markdown format
+   - Processing time may be longer than RapidOCR due to additional analysis
+
+4. Recognition accuracy may vary for complex scanned PDFs or images
+5. It is recommended to use high-resolution scanned PDFs or images for better recognition results
 
 ### Prompt Words for Different Engines
 
@@ -671,6 +707,14 @@ When interacting with assistants in AI IDEs, you can use the following prompt wo
 - "Process complex scanned documents"
 - "Use cloud OCR engine"
 - "Use AI large model for recognition"
+
+#### 📍 Prompt Words for RapidDoc (Enhanced Engine)
+- "Use RapidDoc to process this PDF"
+- "Recognize this file with enhanced OCR"
+- "Process PDF with layout analysis"
+- "Extract text with table recognition"
+- "Use RapidDoc for better formatting"
+- "Enhanced OCR with layout analysis"
 
 #### 📍 Example Conversations
 
@@ -697,7 +741,7 @@ Assistant: I'll default to using the RapidOCR local engine for you. If the recog
 When the AI assistant receives these prompt words, it will:
 
 1. Parse the user's intent to determine the engine to use
-2. Call PDFOCRProcessor(engine="rapid") or PDFOCRProcessor(engine="siliconflow")
+2. Call PDFOCRProcessor(engine="rapid"), PDFOCRProcessor(engine="rapidoc"), or PDFOCRProcessor(engine="siliconflow")
 3. Execute OCR recognition and return the result
 
 ### 🎯 Best Practices
