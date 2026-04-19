@@ -135,6 +135,58 @@ class SiliconFlowOCREngine:
             return f"【OCR识别失败: {str(e)}】"
 
 
+class RapidDocEngine:
+    """RapidDoc增强OCR引擎"""
+    
+    def __init__(self):
+        self.doc = None
+        self._init_engine()
+    
+    def _init_engine(self):
+        """初始化RapidDoc引擎"""
+        try:
+            from rapid_doc import RapidDoc
+            self.doc = RapidDoc()
+        except ImportError:
+            print("RapidDoc依赖未安装，正在尝试自动安装...")
+            if install_dependency("rapid-doc"):
+                try:
+                    from rapid_doc import RapidDoc
+                    self.doc = RapidDoc()
+                except ImportError:
+                    raise Exception("RapidDoc依赖安装失败，请手动安装: pip install rapid-doc")
+            else:
+                raise Exception("RapidDoc依赖安装失败，请手动安装: pip install rapid-doc")
+    
+    def recognize(self, file_path: str) -> Dict[str, Any]:
+        """识别PDF或图片文件
+        
+        Args:
+            file_path: PDF或图片文件路径
+        
+        Returns:
+            包含text和markdown的字典
+        """
+        if self.doc is None:
+            raise Exception("RapidDoc引擎未初始化")
+        
+        # 处理文件
+        result = self.doc(file_path)
+        
+        # 提取文本内容（去除Markdown格式）
+        import re
+        text_content = re.sub(r'!\[.*?\]\(.*?\)', '', result.markdown)  # 移除图片
+        text_content = re.sub(r'\|.*?\|', '', text_content)  # 移除表格
+        text_content = re.sub(r'#+', '', text_content)  # 移除标题
+        text_content = '\n'.join([line.strip() for line in text_content.split('\n') if line.strip()])  # 清理空行
+        
+        return {
+            "text": text_content,
+            "markdown": result.markdown,
+            "images_count": len(result.images)
+        }
+
+
 class PDFOCRProcessor:
     """PDF OCR处理器 - 支持多种OCR引擎"""
     
@@ -145,11 +197,13 @@ class PDFOCRProcessor:
         Args:
             engine: OCR引擎类型，可选值：
                 - "rapid": 使用RapidOCR本地引擎（默认，无需API）
+                - "rapidoc": 使用RapidDoc增强引擎
                 - "siliconflow": 使用硅基流动API引擎
                 - None: 从环境变量 OCR_ENGINE 读取，默认为 "rapid"
         """
         self.engine_type = engine or os.getenv("OCR_ENGINE", "rapid")
         self.rapid_engine: Optional[RapidOCREngine] = None
+        self.rapidoc_engine: Optional[RapidDocEngine] = None
         self.siliconflow_engine: Optional[SiliconFlowOCREngine] = None
         
         # 初始化选定的引擎
@@ -165,6 +219,14 @@ class PDFOCRProcessor:
                 print("将尝试使用硅基流动API引擎...")
                 self.engine_type = "siliconflow"
                 self.siliconflow_engine = SiliconFlowOCREngine()
+        elif self.engine_type == "rapidoc":
+            try:
+                self.rapidoc_engine = RapidDocEngine()
+            except Exception as e:
+                print(f"RapidDoc初始化失败: {e}")
+                print("将尝试使用RapidOCR引擎...")
+                self.engine_type = "rapid"
+                self.rapid_engine = RapidOCREngine()
         elif self.engine_type == "siliconflow":
             self.siliconflow_engine = SiliconFlowOCREngine()
         else:
@@ -281,6 +343,9 @@ class PDFOCRProcessor:
             if self.engine_type == "rapid":
                 # 使用RapidOCR本地识别
                 result = self._ocr_with_rapid(pdf_path, save_images)
+            elif self.engine_type == "rapidoc":
+                # 使用RapidDoc增强识别
+                result = self._ocr_with_rapidoc(pdf_path)
             else:
                 # 使用硅基流动API识别
                 result = self._ocr_with_siliconflow(pdf_path)
@@ -321,6 +386,32 @@ class PDFOCRProcessor:
             # 清理临时文件
             if not save_images and os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
+    
+    def _ocr_with_rapidoc(self, pdf_path: str) -> Dict[str, Any]:
+        """使用RapidDoc识别PDF"""
+        try:
+            # 直接使用RapidDoc处理PDF
+            result = self.rapidoc_engine.recognize(pdf_path)
+            
+            # 计算页数
+            page_count = 1
+            try:
+                import fitz  # PyMuPDF
+                doc = fitz.open(pdf_path)
+                page_count = len(doc)
+                doc.close()
+            except:
+                pass
+            
+            return {
+                "text": result["text"],
+                "page_count": page_count,
+                "engine": "rapidoc",
+                "markdown": result["markdown"],
+                "images_count": result["images_count"]
+            }
+        except Exception as e:
+            raise Exception(f"RapidDoc识别失败: {str(e)}")
     
     def _ocr_with_siliconflow(self, pdf_path: str) -> Dict[str, Any]:
         """使用硅基流动API识别PDF"""
@@ -366,6 +457,12 @@ class PDFOCRProcessor:
         try:
             if self.engine_type == "rapid":
                 result["text"] = self.rapid_engine.recognize(image_path)
+            elif self.engine_type == "rapidoc":
+                # 使用RapidDoc识别图片
+                rapidoc_result = self.rapidoc_engine.recognize(image_path)
+                result["text"] = rapidoc_result["text"]
+                result["markdown"] = rapidoc_result["markdown"]
+                result["images_count"] = rapidoc_result["images_count"]
             else:
                 # 将图片转换为base64
                 try:
@@ -430,7 +527,7 @@ if __name__ == "__main__":
         engine = sys.argv[2] if len(sys.argv) > 2 else None
     else:
         print("使用方法: python pdf_ocr_processor.py <pdf_file_path> [engine]")
-        print("engine可选值: rapid (默认) | siliconflow")
+        print("engine可选值: rapid (默认) | rapidoc | siliconflow")
         sys.exit(1)
     
     if not os.path.exists(pdf_path):
@@ -441,8 +538,13 @@ if __name__ == "__main__":
         result = process_pdf_ocr(pdf_path, engine=engine)
         print(f"OCR识别完成，共 {result['page_count']} 页")
         print(f"使用引擎: {result['engine']}")
+        if 'images_count' in result:
+            print(f"提取的图片数量: {result['images_count']}")
         print("\n识别结果:")
         print(result['text'])
+        if 'markdown' in result and len(result['markdown']) > 500:
+            print("\nMarkdown结果预览:")
+            print(result['markdown'][:500] + "...")
     except Exception as e:
         print(f"处理失败: {e}")
         sys.exit(1)

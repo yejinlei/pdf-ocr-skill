@@ -8,8 +8,9 @@
 
 - ✅ 支持影印版PDF文件的文字提取
 - ✅ 支持多种图片格式的文字识别（JPG、PNG、BMP、GIF、TIFF、WEBP）
-- ✅ **双引擎支持**：
+- ✅ **三引擎支持**：
   - **RapidOCR**（本地引擎，默认）：无需API密钥，免费使用，识别速度快
+  - **RapidDoc**（增强引擎）：支持版面分析、表格识别、公式识别和阅读顺序恢复
   - **硅基流动API**（云端引擎）：使用大模型进行OCR识别
 - ✅ 支持中文和英文文字识别
 - ✅ 保持文字的顺序和结构
@@ -42,6 +43,7 @@ pip install rapidocr_onnxruntime
 ```env
 # OCR引擎选择
 # - "rapid": 使用RapidOCR本地引擎（默认，无需API密钥）
+# - "rapidoc": 使用RapidDoc增强引擎（无需API密钥）
 # - "siliconflow": 使用硅基流动API引擎（需要API密钥）
 OCR_ENGINE=rapid
 
@@ -108,6 +110,9 @@ python pdf_ocr_processor.py your_document.pdf
 
 # 使用硅基流动API引擎
 python pdf_ocr_processor.py your_document.pdf siliconflow
+
+# 使用RapidDoc增强引擎
+python pdf_ocr_processor.py your_document.pdf rapidoc
 ```
 
 ### 详细使用示例

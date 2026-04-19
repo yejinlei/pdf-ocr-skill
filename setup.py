@@ -12,10 +12,10 @@ with open("requirements.txt", "r", encoding="utf-8") as fh:
 
 setup(
     name="pdf-ocr-skill",
-    version="2.3.0",
+    version="2.4.0",
     author="PDF OCR Skill Team",
     author_email="",
-    description="支持双引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with dual-engine support, capable of extracting Chinese and English text from scanned PDF files and image files",
+    description="支持三引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with triple-engine support, capable of extracting Chinese and English text from scanned PDF files and image files",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yejinlei/pdf-ocr-skill",
