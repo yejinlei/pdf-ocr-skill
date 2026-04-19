@@ -1,7 +1,7 @@
 ---
 name: pdf-ocr-skill
-description: 支持双引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with dual-engine support, capable of extracting Chinese and English text from scanned PDF files and image files
-version: 2.4.0
+description: 支持四引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with quadruple-engine support, capable of extracting Chinese and English text from scanned PDF files and image files
+version: 2.5.0
 author: yejinlei
 license: MIT
 tags:
@@ -29,7 +29,7 @@ PDF OCR技能用于从影印版PDF文件和图片文件中提取文字内容。�
 
 - 支持影印版PDF文件的文字提取
 - 支持多种图片格式的文字识别（JPG、PNG、BMP、GIF、TIFF、WEBP）
-- **三引擎支持**：RapidOCR（本地）、RapidDoc（增强）和硅基流动API（云端）
+- **四引擎支持**：RapidOCR（本地）、RapidDoc（增强）、PaddleOCR（本地）和硅基流动API（云端）
 - 支持中文和英文文字识别
 - 保持文字的顺序和结构
 - 自动将PDF页面转换为图片进行识别
@@ -59,6 +59,8 @@ pip install rapidocr_onnxruntime
 ```env
 # OCR引擎选择
 # - "rapid": 使用RapidOCR本地引擎（默认，无需API密钥）
+# - "rapidoc": 使用RapidDoc增强引擎（无需API密钥）
+# - "paddle": 使用PaddleOCR本地引擎（无需API密钥）
 # - "siliconflow": 使用硅基流动API引擎（需要API密钥）
 OCR_ENGINE=rapid
 
@@ -128,6 +130,12 @@ python pdf_ocr_processor.py your_document.pdf
 
 # 使用硅基流动API引擎
 python pdf_ocr_processor.py your_document.pdf siliconflow
+
+# 使用RapidDoc增强引擎
+python pdf_ocr_processor.py your_document.pdf rapidoc
+
+# 使用PaddleOCR引擎
+python pdf_ocr_processor.py your_document.pdf paddle
 ```
 
 ### 进阶使用示例
@@ -207,7 +215,7 @@ print(result['text'])
 {
     "text": "识别的完整文本内容",
     "page_count": 页数,  # 图片文件始终为1
-    "engine": "rapid" | "rapidoc" | "siliconflow"  # 使用的OCR引擎
+    "engine": "rapid" | "rapidoc" | "paddle" | "siliconflow"  # 使用的OCR引擎
 }
 ```
 
@@ -237,6 +245,12 @@ print(result['text'])
    - 支持版面分析、表格识别、公式识别和阅读顺序恢复
    - 提供更结构化的输出，包括Markdown格式
    - 处理时间可能比RapidOCR长，因为需要进行额外的分析
+
+4. **PaddleOCR引擎**：
+   - 完全免费，无需网络连接
+   - 使用PP-OCRv5模型，具有较高的识别准确率
+   - 首次使用会自动下载模型文件
+   - 支持多种语言和场景的文字识别
 
 4. 对于复杂的扫描版PDF或图片，识别准确率可能会有所不同
 5. 建议使用高清晰度的扫描版PDF或图片以获得更好的识别效果
@@ -269,6 +283,14 @@ print(result['text'])
 - "用 RapidDoc 获得更好的格式"
 - "增强 OCR 与版面分析"
 
+#### 📍 触发 PaddleOCR（本地引擎）的提示词
+- "使用 PaddleOCR 处理这个 PDF"
+- "用 PaddleOCR 识别这个文件"
+- "使用 PP-OCRv5 模型识别"
+- "用 PaddleOCR 进行高精度识别"
+- "PaddleOCR 本地处理"
+- "使用 PaddleOCR 引擎提取文字"
+
 #### 📍 示例对话
 
 **示例 1：使用本地引擎**
@@ -294,7 +316,7 @@ print(result['text'])
 当 AI 助手接收到这些提示词时，会：
 
 1. 解析用户意图，确定要使用的引擎
-2. 调用 PDFOCRProcessor(engine="rapid")、PDFOCRProcessor(engine="rapidoc") 或 PDFOCRProcessor(engine="siliconflow")
+2. 调用 PDFOCRProcessor(engine="rapid")、PDFOCRProcessor(engine="rapidoc")、PDFOCRProcessor(engine="paddle") 或 PDFOCRProcessor(engine="siliconflow")
 3. 执行 OCR 识别并返回结果
 
 ### 🎯 最佳实践
@@ -340,7 +362,7 @@ PDF OCR Skill is used to extract text content from scanned PDF files and image f
 
 - Support text extraction from scanned PDF files
 - Support text recognition from multiple image formats (JPG, PNG, BMP, GIF, TIFF, WEBP)
-- **Triple-engine support**: RapidOCR (local), RapidDoc (enhanced), and SiliconFlow API (cloud)
+- **Quadruple-engine support**: RapidOCR (local), RapidDoc (enhanced), PaddleOCR (local), and SiliconFlow API (cloud)
 - Support Chinese and English text recognition
 - Maintain text order and structure
 - Automatically convert PDF pages to images for recognition
@@ -370,6 +392,8 @@ pip install rapidocr_onnxruntime
 ```env
 # OCR engine selection
 # - "rapid": Use RapidOCR local engine (default, no API key required)
+# - "rapidoc": Use RapidDoc enhanced engine (no API key required)
+# - "paddle": Use PaddleOCR local engine (no API key required)
 # - "siliconflow": Use SiliconFlow API engine (API key required)
 OCR_ENGINE=rapid
 
@@ -439,6 +463,12 @@ python pdf_ocr_processor.py your_document.pdf
 
 # Use SiliconFlow API engine
 python pdf_ocr_processor.py your_document.pdf siliconflow
+
+# Use RapidDoc enhanced engine
+python pdf_ocr_processor.py your_document.pdf rapidoc
+
+# Use PaddleOCR engine
+python pdf_ocr_processor.py your_document.pdf paddle
 ```
 
 ### Advanced Usage Examples
@@ -518,7 +548,7 @@ print(result['text'])
 {
     "text": "Recognized full text content",
     "page_count": number_of_pages,  # Always 1 for image files
-    "engine": "rapid" | "rapidoc" | "siliconflow"  # OCR engine used
+    "engine": "rapid" | "rapidoc" | "paddle" | "siliconflow"  # OCR engine used
 }
 ```
 
@@ -548,6 +578,12 @@ print(result['text'])
    - Supports layout analysis, table recognition, formula recognition, and reading order recovery
    - Provides more structured output including markdown format
    - Processing time may be longer than RapidOCR due to additional analysis
+
+4. **PaddleOCR Engine**:
+   - Completely free, no network connection required
+   - Uses PP-OCRv5 model with high recognition accuracy
+   - Model files will be automatically downloaded on first use
+   - Supports text recognition for multiple languages and scenarios
 
 4. Recognition accuracy may vary for complex scanned PDFs or images
 5. It is recommended to use high-resolution scanned PDFs or images for better recognition results
@@ -580,6 +616,14 @@ When interacting with assistants in AI IDEs, you can use the following prompt wo
 - "Use RapidDoc for better formatting"
 - "Enhanced OCR with layout analysis"
 
+#### 📍 Prompt Words for PaddleOCR (Local Engine)
+- "Use PaddleOCR to process this PDF"
+- "Recognize this file with PaddleOCR"
+- "Use PP-OCRv5 model for recognition"
+- "Use PaddleOCR for high-precision recognition"
+- "PaddleOCR local processing"
+- "Extract text using PaddleOCR engine"
+
 #### 📍 Example Conversations
 
 **Example 1: Using Local Engine**
@@ -605,7 +649,7 @@ Assistant: I'll default to using the RapidOCR local engine for you. If the recog
 When the AI assistant receives these prompt words, it will:
 
 1. Parse the user's intent to determine the engine to use
-2. Call PDFOCRProcessor(engine="rapid"), PDFOCRProcessor(engine="rapidoc"), or PDFOCRProcessor(engine="siliconflow")
+2. Call PDFOCRProcessor(engine="rapid"), PDFOCRProcessor(engine="rapidoc"), PDFOCRProcessor(engine="paddle"), or PDFOCRProcessor(engine="siliconflow")
 3. Execute OCR recognition and return the result
 
 ### 🎯 Best Practices

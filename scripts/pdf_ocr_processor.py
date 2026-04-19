@@ -74,6 +74,60 @@ class RapidOCREngine:
         return "\n".join(texts)
 
 
+class PaddleOCREngine:
+    """PaddleOCR本地OCR引擎"""
+    
+    def __init__(self):
+        self.ocr = None
+        self._init_engine()
+    
+    def _init_engine(self):
+        """初始化PaddleOCR引擎"""
+        try:
+            from paddleocr import PaddleOCR
+            # 使用PP-OCRv5模型
+            print("正在初始化PaddleOCR引擎...")
+            self.ocr = PaddleOCR(use_textline_orientation=True, lang='ch')
+            print("PaddleOCR引擎初始化成功")
+        except ImportError as e:
+            print(f"PaddleOCR导入失败: {e}")
+            print("PaddleOCR依赖未安装，正在尝试自动安装...")
+            if install_dependency("paddleocr"):
+                try:
+                    from paddleocr import PaddleOCR
+                    # 使用PP-OCRv5模型
+                    print("正在初始化PaddleOCR引擎...")
+                    self.ocr = PaddleOCR(use_textline_orientation=True, lang='ch')
+                    print("PaddleOCR引擎初始化成功")
+                except ImportError as e:
+                    print(f"PaddleOCR导入失败: {e}")
+                    raise Exception("PaddleOCR依赖安装失败，请手动安装: pip install paddleocr")
+            else:
+                raise Exception("PaddleOCR依赖安装失败，请手动安装: pip install paddleocr")
+        except Exception as e:
+            print(f"PaddleOCR初始化失败: {e}")
+            raise
+    
+    def recognize(self, image_path: str) -> str:
+        """识别单张图片"""
+        if self.ocr is None:
+            raise Exception("PaddleOCR引擎未初始化")
+        
+        result = self.ocr.predict(image_path)
+        
+        if not result:
+            return ""
+        
+        # 提取文本
+        texts = []
+        for page in result:
+            for line in page:
+                if len(line) >= 2:
+                    texts.append(line[1][0])
+        
+        return "\n".join(texts)
+
+
 class SiliconFlowOCREngine:
     """硅基流动API OCR引擎"""
     
@@ -198,12 +252,14 @@ class PDFOCRProcessor:
             engine: OCR引擎类型，可选值：
                 - "rapid": 使用RapidOCR本地引擎（默认，无需API）
                 - "rapidoc": 使用RapidDoc增强引擎
+                - "paddle": 使用PaddleOCR本地引擎
                 - "siliconflow": 使用硅基流动API引擎
                 - None: 从环境变量 OCR_ENGINE 读取，默认为 "rapid"
         """
         self.engine_type = engine or os.getenv("OCR_ENGINE", "rapid")
         self.rapid_engine: Optional[RapidOCREngine] = None
         self.rapidoc_engine: Optional[RapidDocEngine] = None
+        self.paddle_engine: Optional[PaddleOCREngine] = None
         self.siliconflow_engine: Optional[SiliconFlowOCREngine] = None
         
         # 初始化选定的引擎
@@ -224,6 +280,14 @@ class PDFOCRProcessor:
                 self.rapidoc_engine = RapidDocEngine()
             except Exception as e:
                 print(f"RapidDoc初始化失败: {e}")
+                print("将尝试使用RapidOCR引擎...")
+                self.engine_type = "rapid"
+                self.rapid_engine = RapidOCREngine()
+        elif self.engine_type == "paddle":
+            try:
+                self.paddle_engine = PaddleOCREngine()
+            except Exception as e:
+                print(f"PaddleOCR初始化失败: {e}")
                 print("将尝试使用RapidOCR引擎...")
                 self.engine_type = "rapid"
                 self.rapid_engine = RapidOCREngine()
@@ -328,7 +392,7 @@ class PDFOCRProcessor:
         
         Args:
             pdf_path: PDF文件路径
-            save_images: 是否保存中间图片文件（RapidOCR模式下）
+            save_images: 是否保存中间图片文件（RapidOCR和PaddleOCR模式下）
         
         Returns:
             包含text和page_count的字典
@@ -346,6 +410,9 @@ class PDFOCRProcessor:
             elif self.engine_type == "rapidoc":
                 # 使用RapidDoc增强识别
                 result = self._ocr_with_rapidoc(pdf_path)
+            elif self.engine_type == "paddle":
+                # 使用PaddleOCR本地识别
+                result = self._ocr_with_paddle(pdf_path, save_images)
             else:
                 # 使用硅基流动API识别
                 result = self._ocr_with_siliconflow(pdf_path)
@@ -379,6 +446,38 @@ class PDFOCRProcessor:
                 "text": "\n\n".join(text_parts),
                 "page_count": len(image_paths),
                 "engine": "rapid",
+                "images_dir": temp_dir if save_images else None
+            }
+            
+        finally:
+            # 清理临时文件
+            if not save_images and os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+    
+    def _ocr_with_paddle(self, pdf_path: str, save_images: bool = False) -> Dict[str, Any]:
+        """使用PaddleOCR识别PDF"""
+        import tempfile
+        import shutil
+        
+        # 创建临时目录存放图片
+        if save_images:
+            temp_dir = os.path.join(os.path.dirname(pdf_path), "pdf_images")
+        else:
+            temp_dir = tempfile.mkdtemp()
+        
+        try:
+            # 转换PDF为图片
+            image_paths = self.pdf_to_images(pdf_path, output_dir=temp_dir)
+            
+            text_parts = []
+            for idx, img_path in enumerate(image_paths, 1):
+                page_text = self.paddle_engine.recognize(img_path)
+                text_parts.append(f"=== 第 {idx} 页 ===\n{page_text}")
+            
+            return {
+                "text": "\n\n".join(text_parts),
+                "page_count": len(image_paths),
+                "engine": "paddle",
                 "images_dir": temp_dir if save_images else None
             }
             
@@ -463,6 +562,9 @@ class PDFOCRProcessor:
                 result["text"] = rapidoc_result["text"]
                 result["markdown"] = rapidoc_result["markdown"]
                 result["images_count"] = rapidoc_result["images_count"]
+            elif self.engine_type == "paddle":
+                # 使用PaddleOCR识别图片
+                result["text"] = self.paddle_engine.recognize(image_path)
             else:
                 # 将图片转换为base64
                 try:
@@ -527,7 +629,7 @@ if __name__ == "__main__":
         engine = sys.argv[2] if len(sys.argv) > 2 else None
     else:
         print("使用方法: python pdf_ocr_processor.py <pdf_file_path> [engine]")
-        print("engine可选值: rapid (默认) | rapidoc | siliconflow")
+        print("engine可选值: rapid (默认) | rapidoc | paddle | siliconflow")
         sys.exit(1)
     
     if not os.path.exists(pdf_path):

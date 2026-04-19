@@ -1,41 +1,41 @@
-"""
-PDF OCR Skill Setup
-"""
-
 from setuptools import setup, find_packages
 
-with open("README.md", "r", encoding="utf-8") as fh:
-    long_description = fh.read()
-
-with open("requirements.txt", "r", encoding="utf-8") as fh:
-    requirements = [line.strip() for line in fh if line.strip() and not line.startswith("#")]
+# 读取README.md作为长描述
+with open("README.md", "r", encoding="utf-8") as f:
+    long_description = f.read()
 
 setup(
     name="pdf-ocr-skill",
-    version="2.4.0",
+    version="2.5.0",
     author="PDF OCR Skill Team",
     author_email="",
-    description="支持三引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with triple-engine support, capable of extracting Chinese and English text from scanned PDF files and image files",
+    description="支持四引擎的PDF OCR识别技能，可从影印版PDF文件和图片文件中提取中英文文字内容 | PDF OCR Skill with quadruple-engine support, capable of extracting Chinese and English text from scanned PDF files and image files",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/yejinlei/pdf-ocr-skill",
     packages=find_packages(),
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Intended Audience :: Developers",
-        "Topic :: Scientific/Engineering :: Artificial Intelligence",
-        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
-    install_requires=requirements,
-    keywords="ocr pdf image recognition siliconflow rapidocr local-ocr chinese english",
-    project_urls={
-        "Bug Reports": "https://github.com/yejinlei/pdf-ocr-skill/issues",
-        "Source": "https://github.com/yejinlei/pdf-ocr-skill",
+    python_requires=">=3.6",
+    install_requires=[
+        "pymupdf",
+        "pillow",
+        "requests",
+        "python-dotenv"
+    ],
+    extras_require={
+        "full": [
+            "rapidocr_onnxruntime",
+            "rapid-doc",
+            "paddleocr"
+        ]
+    },
+    entry_points={
+        "console_scripts": [
+            "pdf-ocr=scripts.pdf_ocr_processor:main",
+        ],
     },
 )
